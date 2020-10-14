@@ -1,3 +1,10 @@
+/*user params*/
+    /*mandatory*/
+    @recipient_mail NVARCHAR(800) = 'mail@mail.com'
+
+    /*optional*/
+    @defaul_mail_profile sysname = 'default_provile'
+
 USE [msdb]
 GO
 
@@ -130,10 +137,10 @@ SET @count_results = (SELECT COUNT(*) FROM @result)
     DECLARE @HTML_BODY NVARCHAR(MAX)
     DECLARE @xml_result NVARCHAR(MAX)
     DECLARE @HTML_subject NVARCHAR(500) = (SELECT CAST(@count_results AS NVARCHAR(3)) + ' database backup/s missing on ' + @server_name )
-    DECLARE @msdb_profile_name NVARCHAR(100) = (SELECT 'IOMMTA01')
+    DECLARE @msdb_profile_name NVARCHAR(100) = (SELECT @defaul_mail_profile)
 	/*check if default profile is there, if not get the oldest*/
 	IF NOT EXISTS (SELECT TOP(1) name FROM msdb.dbo.sysmail_profile
-    WHERE name = 'IOMMTA01')
+    WHERE name = @defaul_mail_profile)
     BEGIN
     SET @msdb_profile_name = (SELECT TOP(1) name FROM msdb.dbo.sysmail_profile ORDER BY profile_id)
     END
@@ -188,7 +195,7 @@ SET @count_results = (SELECT COUNT(*) FROM @result)
 	/*send the email*/
     EXEC msdb.dbo.sp_send_dbmail  
     @profile_name = @msdb_profile_name,  
-    @recipients = 'dwhinfraalerts@csr.pstars',  
+    @recipients = 'mail@mail',  
     @body = @HTML_BODY,  
     @subject = @HTML_subject,
     @body_format = 'HTML';  
